@@ -18,4 +18,9 @@ Starting
 	(bot@node)1> make:all([load]).
 	(bot@node)2> irc_bot:start_link("irc.example.com", 6667, "#general", "bot", "", "IRC Bot").
 	
-	
+License
+=======
+
+I release this source code into the public domain. Do with it what you will.
+
+	- Michael Melanson <michael+erlbot@codeshack.ca>
