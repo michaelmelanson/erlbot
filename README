@@ -15,6 +15,7 @@ Starting
 ========
 
 	$ erl -sname bot -pa ebin -pa /path/to/eunit/ebin/
-	(bot@node)71> irc_bot:start_link("irc.example.com", 6667, "#general", "bot", "", "IRC Bot").
+	(bot@node)1> make:all([load]).
+	(bot@node)2> irc_bot:start_link("irc.example.com", 6667, "#general", "bot", "", "IRC Bot").
 	
 	
