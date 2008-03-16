@@ -1,0 +1,20 @@
+Introduction
+============
+
+This project implements a basic IRC bot in Erlang. This code can be used as a
+starting point for developing a more sophisticated bot.
+
+The irc_numerics, irc_parser and irc_commands modules, and the irc.hrl and
+logging.hrl headers are modified versions of those found in Geoff Cant's
+"erlirc", which can be found at
+
+	http://git.erlang.geek.nz/?p=erlirc.git
+	
+
+Starting
+========
+
+	$ erl -sname bot -pa ebin -pa /path/to/eunit/ebin/
+	(bot@node)71> irc_bot:start_link("irc.example.com", 6667, "#general", "bot", "", "IRC Bot").
+	
+	
