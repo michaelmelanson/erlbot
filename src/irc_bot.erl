@@ -26,7 +26,9 @@
 -include("irc.hrl").
 
 -record(state, {connection, hostname, port, channel,
-                nickname, password, real_name}).
+                nickname, password, real_name,
+                
+                channel_pid}).
 
 %%====================================================================
 %% API
@@ -47,7 +49,10 @@ init(State) ->
     Connection = irc_connection:start(State#state.hostname,
                                       State#state.port,
                                       self()),
-    {ok, connecting, State#state{connection=Connection}}.
+                                      
+    {ok, ChannelPid} = irc_channel:start_link(),
+    
+    {ok, connecting, State#state{connection=Connection, channel_pid=ChannelPid}}.
 
 connecting(socket_opened, State) ->
     io:format("~p: Connected, sending login information~n", [?MODULE]),
@@ -66,17 +71,21 @@ authenticating({authenticated, _}, State) ->
     Channel = State#state.channel,
     Password = State#state.password,
     
-    irc_connection:send(Connection, {nickserv_identify, Password}),
+    if
+        Password =/= "" ->
+            irc_connection:send(Connection, {nickserv_identify, Password});
+        
+        true -> ok
+    end,
+    
     io:format("~p: Joining channel ~p~n", [?MODULE, Channel]),
     irc_connection:send(Connection, {join, Channel}),
     {next_state, joining, State}.
 
 joining({joined, _}, State) ->
-    Connection = State#state.connection,
     Channel = State#state.channel,
     
-    io:format("~p: Joined channel~n", [?MODULE]),
-    irc_connection:send(Connection, {say, Channel, "Hello!"}),
+    io:format("~p: Joined channel ~s~n", [?MODULE, Channel]),
     {next_state, connected, State}.
 
 connected({message, Command}, State) ->
@@ -89,7 +98,10 @@ connected({message, Command}, State) ->
                       [?MODULE, Sender, Message]);
         _ ->
             io:format("~p: Message to channel ~s from ~s: ~s~n",
-                      [?MODULE, Recipient, Sender, Message])
+                      [?MODULE, Recipient, Sender, Message]),
+            
+            ChannelPid = State#state.channel_pid,
+            irc_channel:message(ChannelPid, Message)
     end,
     
     {next_state, connected, State}.

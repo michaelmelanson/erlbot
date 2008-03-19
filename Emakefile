@@ -2,8 +2,11 @@
   "src/irc_connection",
   "src/irc_numerics",
   "src/irc_parser",
-  "src/irc_commands"],
+  "src/irc_commands",
+  "src/semantic",
+  "src/irc_channel"],
  [debug_info,
   {i, "include"},
   {i, "../eunit/include"},
+  {i, "/usr/local/lib/erlang/lib/xmerl-1.1.6/include/"},
   {outdir, "ebin"}]}.
