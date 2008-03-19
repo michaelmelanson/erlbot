@@ -54,19 +54,19 @@ connecting(socket_opened, State) ->
     
     Connection = State#state.connection,
     Nickname = State#state.nickname,
-    Password = State#state.password,
     RealName = State#state.real_name,
     
-    irc_connection:send(Connection, {pass, Password}),
     irc_connection:send(Connection, {nick, Nickname}),
-    irc_connection:send(Connection, {user, Nickname, "nil", "nil", RealName}),
+    irc_connection:send(Connection, {user, Nickname, "0", "*", RealName}),
     
     {next_state, authenticating, State}.
     
 authenticating({authenticated, _}, State) ->
     Connection = State#state.connection,
     Channel = State#state.channel,
+    Password = State#state.password,
     
+    irc_connection:send(Connection, {nickserv_identify, Password}),
     io:format("~p: Joining channel ~p~n", [?MODULE, Channel]),
     irc_connection:send(Connection, {join, Channel}),
     {next_state, joining, State}.
@@ -105,7 +105,7 @@ handle_info(socket_opened, StateName, StateData) ->
     gen_fsm:send_event(self(), socket_opened),
     {next_state, StateName, StateData};
     
-handle_info({received, Command}, StateName, StateData) ->    
+handle_info({received, Command}, StateName, StateData) ->   
     case process_command(StateName, Command#irc_cmd.name) of
         undefined ->
             ok;

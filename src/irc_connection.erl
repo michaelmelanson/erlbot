@@ -38,7 +38,7 @@ terminate(Pid) ->
 %% Internal functions
 %%====================================================================
 connect(Host, Port) ->
-    Opts = [binary,
+    Opts = [list,
             {nodelay, true},
             {keepalive, true},
             {reuseaddr, true},
@@ -55,11 +55,14 @@ connect(Host, Port) ->
 loop(State) ->
     receive
         {send, Msg} -> % See irc_parser:encode_message/1 for format of Msg
-            gen_tcp:send(State#state.socket, irc_parser:encode_message(Msg)),
+            Data = irc_parser:encode_message(Msg),
+            %io:format("> ~s", [Data]),
+            gen_tcp:send(State#state.socket, Data),
             loop(State);
             
         {tcp, _Port, Data} ->
-            RawData = lists:concat([State#state.buffer, binary_to_list(Data)]),
+            %io:format("< ~s", [Data]),
+            RawData = lists:concat([State#state.buffer, Data]),
             RawParsed = irc_parser:parse_data(RawData),
 
             case tl(RawParsed) of
@@ -71,7 +74,7 @@ loop(State) ->
                     Parsed = RawParsed,
                     Buffer = ""
             end,
-                        
+
             lists:foreach(fun(Line) ->
                 case Line of
                     {bad_data, _} ->
@@ -81,6 +84,7 @@ loop(State) ->
                         case Cmd#irc_cmd.name of
                             ping ->
                                 io:format("~p: PING? PONG!~n", [?MODULE]),
+                                
                                 self() ! {send, {pong, Cmd#irc_cmd.args}};
                             _ ->
                                 State#state.pid ! {received, Line}

@@ -32,6 +32,7 @@ parse_line(Line) ->
         Value -> Value
     catch
         _:_ -> 
+            io:format("~p: Bad data =>~n~s", [?MODULE, Line]),
             {bad_data, Line}
     end.
 
@@ -104,21 +105,21 @@ parse_command_part(Rest, Cmd) ->
                         args=nonl(Args)}
     end.
 
-encode_message({pong, Id})      -> io_lib:format("PONG ~s\r\n", [Id]);
-encode_message({join, Channel}) -> io_lib:format("JOIN ~s\r\n", [Channel]);
-encode_message({quit, Message}) -> io_lib:format("QUIT :~s\r\n", [Message]);
+encode_message({pong, Id})      -> io_lib:format("PONG ~s~n", [Id]);
+encode_message({join, Channel}) -> io_lib:format("JOIN ~s~n", [Channel]);
+encode_message({quit, Message}) -> io_lib:format("QUIT :~s~n", [Message]);
 encode_message({say, Channel, Message}) ->
-    io_lib:format("PRIVMSG ~s :~s\r\n", [Channel, Message]);
+    io_lib:format("PRIVMSG ~s :~s~n", [Channel, Message]);
 encode_message({action, Channel, Message}) ->
-    io_lib:format("PRIVMSG ~s :~sACTION ~s~s\r\n",
+    io_lib:format("PRIVMSG ~s :~sACTION ~s~s~n",
                   [Channel, [1],
                    Message, [1]]);
                    
-encode_message({nick, Nickname}) -> io_lib:format("NICK ~s\r\n", [Nickname]);
-encode_message({pass, Password}) -> io_lib:format("PASS ~s\r\n", [Password]);
+encode_message({nick, Nickname}) -> io_lib:format("NICK ~s~n", [Nickname]);
+encode_message({pass, Password}) -> io_lib:format("PASS ~s~n", [Password]);
 encode_message({user, Nickname, HostName, ServerName, RealName}) ->
-    io_lib:format("USER ~s ~s ~s :~s~n",
-                  [Nickname, HostName, ServerName, RealName]).
+    io_lib:format("USER ~s ~s ~s ~s~n", [Nickname, HostName, ServerName, RealName]);
+encode_message({nickserv_identify, Password}) -> io_lib:format("NickServ IDENTIFY ~p~n", [Password]).
 
 split(Line) ->
     split($\s, Line).
